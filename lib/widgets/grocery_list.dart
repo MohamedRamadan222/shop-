@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:fleehshop/data/categores.dart';
 import 'package:fleehshop/models/grocery_item.dart';
 import 'package:fleehshop/widgets/new_item.dart';
@@ -21,11 +20,23 @@ class _GroceryListState extends State<GroceryList> {
   void _loadData() async {
     final Uri url = Uri.https(
         'flutterfoleah-default-rtdb.firebaseio.com', 'shopping-list.json');
-    final http.Response res = await http.get(url);
+    try{
+    final http.Response res = await http.get(url).catchError((_)
+    {
+      return http.Response('',400);
+    }
+    );
     if (res.statusCode >= 400) {
       setState(() {
         _error = 'Field to fetch data. pleas rty again later';
       });
+      return;
+    }
+    if(json.decode(res.body )== null){
+      setState(() {
+        _isLoading = false;
+      });
+      return;
     }
     final Map<String, dynamic> loadedData = jsonDecode(res.body);
     final List<GroceryItem> loadedItems = [];
@@ -42,6 +53,10 @@ class _GroceryListState extends State<GroceryList> {
       setState(() {
         _groceryItems = loadedItems;
         _isLoading = false;
+      });
+    }}catch(err){
+      setState(() {
+        _error = 'Field to fetch data. pleas rty again later';
       });
     }
   }
